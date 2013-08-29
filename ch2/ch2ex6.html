@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ch2Ex2</title>
+    <script src="../js/modernizr-2.6.2.js"></script>
+    <script src="../js/debugger.js"></script>
+    <script type="text/javascript">
+        window.addEventListener("load", eventWindowLoaded, false);
+
+        function eventWindowLoaded(){
+            canvasApp();
+        }
+
+        function canvasSupport(){
+            return Modernizr.canvas;
+        }
+
+        function canvasApp(){
+            if(!canvasSupport()){
+                return;
+            } else {
+                var theCanvas = document.getElementById('canvas');
+                var context = theCanvas.getContext('2d');
+            }
+
+            function drawScreen(){
+                // 화면에 큰 사각형을 그린다.
+                context.fillStyle = 'black';
+                context.fillRect(10, 10, 200, 200);
+
+                // globalCompositeOperation
+                // 빨간색 사각형
+                context.fillStyle = 'red';
+                context.fillRect(1, 1, 50, 50);
+
+                // Source-over
+                context.globalCompositeOperation = 'source-over';
+
+                // 빨산색 사각형
+                context.fillStyle = 'pink';
+                context.fillRect(60, 1, 50, 50);
+
+                // Destination-atop
+                context.globalCompositeOperation = 'destination-over';
+                context.fillStyle = 'blue';
+                context.fillRect(1, 60, 50, 50);
+
+                // Global Alpha
+                context.globalAlpha = .5;
+
+                context.globalCompositeOperation = 'source-atop';
+                context.fillStyle = 'yellow';
+                context.fillRect(60, 60, 50, 50);
+
+            }
+
+            drawScreen();
+        }
+    </script>
+</head>
+<body>
+    <div style="position: absolute; top: 50px; left: 50px;">
+        <canvas id='canvas' width="500" height="500">
+            Your Browser does not support HTML5 Canvas
+        </canvas>
+    </div>
+</body>
+</html>
