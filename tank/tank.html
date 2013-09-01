@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tank Game</title>
+</head>
+<body>
+
+    <h1>Tank Game</h1>
+    <canvas id='canvas' height="400" width="400"></canvas>
+
+</body>
+<!--<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>-->
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="js/logger.js"></script>
+<script src="js/Tank.js"></script>
+<script src="js/Shot.js"></script>
+<script src="js/stats.js"></script>
+<script>
+    (function(){
+
+        logger.info('Start Game');
+
+        var canvas = $('#canvas')
+                ,context = document.getElementById('canvas').getContext('2d')
+                ,height = 400
+                ,width = 400
+                ,DEF_CAP_SIZE = 20  // 라인 간의 간격
+                ,DEF_LINE_SIZE = 1  // 라인크기
+                ,DEF_MAX_X = 20 //  x축 최대값
+                ,DEF_MAX_Y = 20// Y축 최대값.
+        ;
+
+        var renderStats = new Stats();
+        document.body.appendChild(renderStats.domElement);
+
+        var myTank;
+        var redTank = [];
+//        var loop = 0;
+        var Game = {
+            fps : 1
+        };
+
+        /**
+         * 게임 타이머.
+         */
+        Game.run = (function(){
+
+            var loop = 0, skipTicks = 10000/Game.fps,
+                    maxFrameSkip = 10,
+                    nextGameTick = (new Date).getTime();
+
+            logger.debug(skipTicks);
+            return function(){
+                loop = 0;
+
+                while((new Date).getTime() > nextGameTick && loop < maxFrameSkip){
+                    nextGameTick += skipTicks;
+                    loop++;
+                }
+                renderStats.update();
+                fnDraw();
+                fnTankAI();
+            };
+        })();
+
+        /**
+         * 전체 그리기
+         */
+        function fnDraw(){
+
+            fnDrawBackGround();
+            myTank.fnDrawTank(context);
+            $.each(redTank, function(idx, val){
+                val.fnDrawTank(context);
+            });
+        }
+
+        /**
+         * 배경 그리기
+         *
+         */
+        function fnDrawBackGround(){
+            var i, j;
+
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, height, width);
+
+            context.lineWidth = 1;
+            context.strokeStyle = 'pink';
+
+            // X
+            for(i=0; i < DEF_MAX_X; i+=1){
+                j = i*DEF_CAP_SIZE;
+
+                context.beginPath();
+                context.moveTo(0, j);
+                context.lineTo(width, j);
+                context.stroke();
+            }
+
+            // Y
+            for(i=0; i < DEF_MAX_Y; i+=1){
+                j = i*DEF_CAP_SIZE;
+
+                context.beginPath();
+                context.moveTo(j, 0);
+                context.lineTo(j, height);
+                context.stroke();
+            }
+        }
+
+        /**
+         * Key Down.
+         * @param event
+         * @returns {boolean}
+         */
+        function fnKeyDown(event){
+
+            var keyCode = Tank.DEF_UP;
+
+            switch(event.keyCode){
+                // 위로
+                case 87:
+                case 38:
+                    keyCode = Tank.DEF_UP;
+                    break;
+                // Down
+                case 40:
+                    keyCode = Tank.DEF_DOWN;
+                    break;
+                // Left
+                case 37:
+                    keyCode = Tank.DEF_LEFT;
+                    break;
+                // Right
+                case 39:
+                    keyCode = Tank.DEF_RIGHT;
+                    break;
+                // ESC
+                case 27:
+                    logger.debug('ESC');
+                    keyCode = keyCode;
+                    break;
+
+                // SPACE
+                case 32:
+                    logger.debug('SPACE');
+                    keyCode = Tank.DEF_SHOT;
+                    break;
+                default :
+                    return false;
+            }
+
+            myTank.fnKeyDown(keyCode);
+
+            return false;
+        }
+
+        function fnTankAI(){
+            $.each(redTank, function(idx, val){
+               val.fnTankAI();
+            });
+        }
+
+        /**
+         * 초기화.
+         */
+        function fnInit(){
+            canvas.height(height)
+                    .width(width)
+      //            http://stackoverflow.com/questions/1829586/how-do-i-give-an-html-canvas-the-keyboard-focus-using-jquery
+                    .attr("contentEditable", "true")    // 이부분 필요함. 이벤트 안들어옴.
+                    .attr('tabindex', 0)
+                    .mousedown(function(){$(this).focus(); return false;})
+                    .keydown(fnKeyDown)
+            ;
+
+            myTank = new Tank('my', 'self', 1, 1);
+            redTank.push(new Tank('red1', 'auto', 5, 5));
+
+
+//            Game.interval = setInterval(Game.run, 1000/Game.fps);
+            Game.interval = setInterval(Game.run, 0);
+//            fnDraw();
+
+
+        }
+
+
+        fnInit();
+
+
+    })();
+</script>
+</html>
