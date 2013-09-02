@@ -1,8 +1,10 @@
+ShotList = [];
 
-function Shot(tank, x, y, shoting){
 
-    Shot.DEF_SHOT_W = 2;
-    Shot.DEF_SHOT_H = 2;
+function Shot(tank, x, y, shoting, gameStatus){
+
+    Shot.DEF_SHOT_W = 4;
+    Shot.DEF_SHOT_H = 4;
     Shot.DEF_UP = 0;
     Shot.DEF_DOWN = 1;
     Shot.DEF_LEFT = 2;
@@ -12,11 +14,14 @@ function Shot(tank, x, y, shoting){
 
     var shot = {};
 
+    shot.gameStatus = gameStatus;
     shot.id = Math.random() * 10000;
     shot.tank = tank;
     shot.shotX = x;
     shot.shotY = y;
     shot.shoting = shoting;
+
+
 
 
     /**
@@ -30,10 +35,9 @@ function Shot(tank, x, y, shoting){
         };
     }
 
+    shot.fnPlayShot = function(){
 
-    shot.fnDrawShot = function(context){
-
-        switch (shoting){
+        switch (shot.shoting){
             case Shot.DEF_UP:
                 shot.shotY -= 1;
                 break;
@@ -50,11 +54,43 @@ function Shot(tank, x, y, shoting){
                 shot.shotX += 1;
                 break;
         }
+    }
 
+    shot.fnDrawShot = function(context){
         context.fillStyle = 'blue';
-        context.fillRect(shot.shotX*Shot.DEF_SHOT_MOVE_SIZE, shot.shotY*Shot.DEF_SHOT_MOVE_SIZE, Shot.DEF_SHOT_H, Shot.DEF_SHOT_H)
+        context.fillRect(shot.shotX*Shot.DEF_SHOT_MOVE_SIZE + (Shot.DEF_SHOT_MOVE_SIZE/2)-(Shot.DEF_SHOT_W/2)
+            , shot.shotY*Shot.DEF_SHOT_MOVE_SIZE + (Shot.DEF_SHOT_MOVE_SIZE/2)-(Shot.DEF_SHOT_H/2)
+            , Shot.DEF_SHOT_H, Shot.DEF_SHOT_H)
 
     }
+
+    shot.fnCheck = function(tank){
+//
+//        switch (shot.shoting){
+//            case Shot.DEF_UP:
+//
+//                if(shot.shotY < 0) {
+//                }
+//                break;
+//
+//            case Shot.DEF_DOWN:
+//                shot.shotY += 1;
+//                break;
+//
+//            case Shot.DEF_LEFT:
+//                shot.shotX -= 1;
+//                break;
+//
+//            case Shot.DEF_RIGHT:
+//                shot.shotX += 1;
+//                break;
+//        }
+
+
+        return false;
+    }
+
+    shot.fnPlayShot();
 
 
     return shot;

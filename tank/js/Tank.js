@@ -1,4 +1,4 @@
-function Tank(id, type, x, y){
+function Tank(id, type, x, y, gameStatus){
 
 
     /**
@@ -18,7 +18,7 @@ function Tank(id, type, x, y){
 
     var tank = {};
 
-
+    tank.gameStatus = gameStatus;
     tank.myTankX = x; // 탱크 위치
     tank.myTankY = y;
     tank.type = type;
@@ -86,8 +86,9 @@ function Tank(id, type, x, y){
 
             // SPACE
             case Tank.DEF_SHOT:
-                tank.shotList.push(new Shot(tank, tank.myTankX, tank.myTankY, tank.myTankIng));
-                break;
+                gameStatus.shotList.push(new Shot(tank, tank.myTankX, tank.myTankY, tank.myTankIng, tank.gameStatus));
+                logger.debug(gameStatus.shotList.length);
+                break
             default :
                 return false;
 

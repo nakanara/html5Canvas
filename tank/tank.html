@@ -24,7 +24,6 @@
                 ,context = document.getElementById('canvas').getContext('2d')
                 ,height = 400
                 ,width = 400
-                ,DEF_CAP_SIZE = 20  // 라인 간의 간격
                 ,DEF_LINE_SIZE = 1  // 라인크기
                 ,DEF_MAX_X = 20 //  x축 최대값
                 ,DEF_MAX_Y = 20// Y축 최대값.
@@ -35,6 +34,10 @@
 
         var myTank;
         var redTank = [];
+        var GameStatus  = {
+            shotList : []
+            ,DEF_CAP_SIZE : 20  // 라인 간의 간격
+        }
 //        var loop = 0;
         var Game = {
             fps : 1
@@ -47,7 +50,8 @@
 
             var loop = 0, skipTicks = 10000/Game.fps,
                     maxFrameSkip = 10,
-                    nextGameTick = (new Date).getTime();
+                    nextGameTick = (new Date).getTime(),
+                    aiLoop = 0;
 
             logger.debug(skipTicks);
             return function(){
@@ -57,9 +61,15 @@
                     nextGameTick += skipTicks;
                     loop++;
                 }
+                if(aiLoop++ > 100) {
+                    aiLoop = 0;
+                    fnTankAI();
+                    fnPlayShot();
+                }
+
                 renderStats.update();
                 fnDraw();
-                fnTankAI();
+                fnDrawShot()
             };
         })();
 
@@ -90,7 +100,7 @@
 
             // X
             for(i=0; i < DEF_MAX_X; i+=1){
-                j = i*DEF_CAP_SIZE;
+                j = i*GameStatus.DEF_CAP_SIZE;
 
                 context.beginPath();
                 context.moveTo(0, j);
@@ -100,7 +110,7 @@
 
             // Y
             for(i=0; i < DEF_MAX_Y; i+=1){
-                j = i*DEF_CAP_SIZE;
+                j = i*GameStatus.DEF_CAP_SIZE;
 
                 context.beginPath();
                 context.moveTo(j, 0);
@@ -152,6 +162,7 @@
             }
 
             myTank.fnKeyDown(keyCode);
+            logger.debug('>>' + gameStatus.shotList.length);
 
             return false;
         }
@@ -159,6 +170,19 @@
         function fnTankAI(){
             $.each(redTank, function(idx, val){
                val.fnTankAI();
+            });
+        }
+
+        function fnPlayShot(){
+            $.each(gameStatus.shotList, function(idx, val){
+                val.fnPlayShot();
+            });
+        }
+
+        function fnDrawShot(){
+            //logger.debug(shotList.length);
+            $.each(gameStatus.shotList, function(idx, val){
+               val.fnDrawShot(context);
             });
         }
 
@@ -175,8 +199,8 @@
                     .keydown(fnKeyDown)
             ;
 
-            myTank = new Tank('my', 'self', 1, 1);
-            redTank.push(new Tank('red1', 'auto', 5, 5));
+            myTank = new Tank('my', 'self', 1, 1, gameStatus);
+            redTank.push(new Tank('red1', 'auto', 5, 5, gameStatus));
 
 
 //            Game.interval = setInterval(Game.run, 1000/Game.fps);
