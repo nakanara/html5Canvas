@@ -1,4 +1,4 @@
-function Tank(id, type, x, y, gameStatus){
+function Tank(id, type, x, y, GameStatus, color){
 
 
     /**
@@ -9,7 +9,7 @@ function Tank(id, type, x, y, gameStatus){
     Tank.DEF_DOWN = 1;
     Tank.DEF_LEFT = 2;
     Tank.DEF_RIGHT = 3;
-    Tank.DEF_SHOT = 9;
+    Tank.DEF_SHOT = 4;
 
     Tank.DEF_TANK_SIZE = 20;
     Tank.DEF_FRONT_SIZE = 5;
@@ -18,25 +18,34 @@ function Tank(id, type, x, y, gameStatus){
 
     var tank = {};
 
-    tank.gameStatus = gameStatus;
+    tank.GameStatus = GameStatus;
     tank.myTankX = x; // 탱크 위치
     tank.myTankY = y;
     tank.type = type;
     tank.myTankIng = Tank.DEF_UP;
     tank.myHP = 100;
     tank.shotList = [];
+    tank.color = color || 'yellow';
 
+    /**
+     * 탱크 HP
+     * @param hp
+     */
     tank.fnSetHP = function(hp){
         tank.myHP = hp;
     }
 
+    /**
+     * 탱크 그리기.
+     * @param context
+     */
     tank.fnDrawTank = function(context){
 
         var wX = tank.myTankX*Tank.DEF_TANK_SIZE
             , wY = tank.myTankY*Tank.DEF_TANK_SIZE
             ;
 
-        context.fillStyle = 'yellow';
+        context.fillStyle = tank.color;
         context.fillRect(wX, wY, Tank.DEF_TANK_SIZE, Tank.DEF_TANK_SIZE);
 
         context.fillStyle = 'red';
@@ -55,8 +64,14 @@ function Tank(id, type, x, y, gameStatus){
         });
     }
 
+    /**
+     * 탱크 움직이기
+     * @param keyCode
+     * @returns {boolean}
+     */
     tank.fnKeyDown = function(keyCode){
 
+        logger.debug(keyCode);
 
         switch(keyCode){
             // 위로
@@ -86,8 +101,8 @@ function Tank(id, type, x, y, gameStatus){
 
             // SPACE
             case Tank.DEF_SHOT:
-                gameStatus.shotList.push(new Shot(tank, tank.myTankX, tank.myTankY, tank.myTankIng, tank.gameStatus));
-                logger.debug(gameStatus.shotList.length);
+                GameStatus.shotList.push(new Shot(tank, tank.myTankX, tank.myTankY, tank.myTankIng, tank.GameStatus));
+                logger.debug(GameStatus.shotList.length);
                 break
             default :
                 return false;
@@ -97,11 +112,61 @@ function Tank(id, type, x, y, gameStatus){
         return false;
     }
 
+    /**
+     * 탱크 자동
+     */
     tank.fnTankAI = function(){
         var n = Math.floor((Math.random()*10)%5);
-        tank.fnKeyDown(n);
+
+        var tPosition = GameStatus.myTank.fnGetPosition();
+
+        switch(n){
+            case Tank.DEF_DOWN :
+                if(tank.myTankY > tPosition.y) {
+                    tank.fnKeyDown(Tank.DEF_UP);
+                }
+                break;
+            case Tank.DEF_UP:
+                if(tank.myTankY < tPosition.y) {
+                    tank.fnKeyDown(Tank.DEF_DOWN);
+                }
+                break;
+            case Tank.DEF_LEFT :
+                if(tank.myTankX < tPosition.x) {
+                    tank.fnKeyDown(Tank.DEF_RIGHT);
+                }
+                break;
+            case Tank.DEF_RIGHT :
+                if(tank.myTankX > tPosition.x) {
+                    tank.fnKeyDown(Tank.DEF_LEFT);
+                }
+                break;
+            case Tank.DEF_SHOT :
+                if(tank.myTankX == tPosition.x){
+                    if(tank.myTankY > tPosition.y){
+                        tank.myTankIng = Tank.DEF_UP;
+                    } else if(tank.myTankY < tPosition.y){
+                        tank.myTankIng = Tank.DEF_DOWN;
+                    }
+                    tank.fnKeyDown(Tank.DEF_SHOT);
+                }
+                else if(tank.myTankY == tPosition.y){
+                    if(tank.myTankX > tPosition.x){
+                        tank.myTankIng = Tank.DEF_LEFT;
+                    } else if(tank.myTankX < tPosition.x){
+                        tank.myTankIng = Tank.DEF_RIGHT;
+                    }
+                    tank.fnKeyDown(Tank.DEF_SHOT);
+
+                }
+                break;
+        }
     }
 
+    /**
+     * 탱크 위치
+     * @returns {{x: *, y: *, ing: *}}
+     */
     tank.fnGetPosition = function(){
         return {
             x : tank.myTankX,

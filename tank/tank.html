@@ -27,20 +27,21 @@
                 ,DEF_LINE_SIZE = 1  // 라인크기
                 ,DEF_MAX_X = 20 //  x축 최대값
                 ,DEF_MAX_Y = 20// Y축 최대값.
+                ,DEF_AI_CAP = 20
         ;
 
         var renderStats = new Stats();
         document.body.appendChild(renderStats.domElement);
 
-        var myTank;
-        var redTank = [];
         var GameStatus  = {
             shotList : []
             ,DEF_CAP_SIZE : 20  // 라인 간의 간격
+            ,myTank : {}
+            ,redTank : []
         }
 //        var loop = 0;
         var Game = {
-            fps : 1
+            fps : 100
         };
 
         /**
@@ -53,7 +54,6 @@
                     nextGameTick = (new Date).getTime(),
                     aiLoop = 0;
 
-            logger.debug(skipTicks);
             return function(){
                 loop = 0;
 
@@ -61,7 +61,7 @@
                     nextGameTick += skipTicks;
                     loop++;
                 }
-                if(aiLoop++ > 100) {
+                if(aiLoop++ > DEF_AI_CAP) {
                     aiLoop = 0;
                     fnTankAI();
                     fnPlayShot();
@@ -79,8 +79,8 @@
         function fnDraw(){
 
             fnDrawBackGround();
-            myTank.fnDrawTank(context);
-            $.each(redTank, function(idx, val){
+            GameStatus.myTank.fnDrawTank(context);
+            $.each(GameStatus.redTank, function(idx, val){
                 val.fnDrawTank(context);
             });
         }
@@ -161,27 +161,33 @@
                     return false;
             }
 
-            myTank.fnKeyDown(keyCode);
-            logger.debug('>>' + gameStatus.shotList.length);
+            GameStatus.myTank.fnKeyDown(keyCode);
+            logger.debug('>>' + GameStatus.shotList.length);
 
             return false;
         }
 
         function fnTankAI(){
-            $.each(redTank, function(idx, val){
+            $.each(GameStatus.redTank, function(idx, val){
                val.fnTankAI();
             });
         }
 
         function fnPlayShot(){
-            $.each(gameStatus.shotList, function(idx, val){
-                val.fnPlayShot();
+            var copyArray = [];
+            $.each(GameStatus.shotList, function(idx, val){
+                if(val.fnPlayShot()){
+                   copyArray.push(val);
+                } else {
+                    val = null;
+                }
             });
+            GameStatus.shotList = copyArray;
         }
 
         function fnDrawShot(){
             //logger.debug(shotList.length);
-            $.each(gameStatus.shotList, function(idx, val){
+            $.each(GameStatus.shotList, function(idx, val){
                val.fnDrawShot(context);
             });
         }
@@ -199,15 +205,10 @@
                     .keydown(fnKeyDown)
             ;
 
-            myTank = new Tank('my', 'self', 1, 1, gameStatus);
-            redTank.push(new Tank('red1', 'auto', 5, 5, gameStatus));
+            GameStatus.myTank = new Tank('my', 'self', 1, 1, GameStatus, 'pink');
+            GameStatus.redTank.push(new Tank('red1', 'auto', 5, 5, GameStatus));
 
-
-//            Game.interval = setInterval(Game.run, 1000/Game.fps);
             Game.interval = setInterval(Game.run, 0);
-//            fnDraw();
-
-
         }
 
 

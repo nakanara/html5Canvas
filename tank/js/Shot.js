@@ -54,40 +54,32 @@ function Shot(tank, x, y, shoting, gameStatus){
                 shot.shotX += 1;
                 break;
         }
+
+        return shot.fnCheckShot();
     }
 
     shot.fnDrawShot = function(context){
-        context.fillStyle = 'blue';
+        context.fillStyle = 'red';
         context.fillRect(shot.shotX*Shot.DEF_SHOT_MOVE_SIZE + (Shot.DEF_SHOT_MOVE_SIZE/2)-(Shot.DEF_SHOT_W/2)
             , shot.shotY*Shot.DEF_SHOT_MOVE_SIZE + (Shot.DEF_SHOT_MOVE_SIZE/2)-(Shot.DEF_SHOT_H/2)
             , Shot.DEF_SHOT_H, Shot.DEF_SHOT_H)
 
     }
 
-    shot.fnCheck = function(tank){
-//
-//        switch (shot.shoting){
-//            case Shot.DEF_UP:
-//
-//                if(shot.shotY < 0) {
-//                }
-//                break;
-//
-//            case Shot.DEF_DOWN:
-//                shot.shotY += 1;
-//                break;
-//
-//            case Shot.DEF_LEFT:
-//                shot.shotX -= 1;
-//                break;
-//
-//            case Shot.DEF_RIGHT:
-//                shot.shotX += 1;
-//                break;
-//        }
+    shot.fnCheckShot = function(){
+
+        if(shot.shotX < 0 || shot.shotX > 20) {
+            return false;
+        }
+
+        if(shot.shotY < 0 || shot.shotY > 20){
+            return false;
+        }
+        return true;
 
 
-        return false;
+
+
     }
 
     shot.fnPlayShot();
