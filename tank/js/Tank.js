@@ -1,20 +1,7 @@
 function Tank(id, type, x, y, GameStatus, color){
 
-
-    /**
-     * 탱크 방향 선
-     * @type {number}
-     */
-    Tank.DEF_UP = 0;
-    Tank.DEF_DOWN = 1;
-    Tank.DEF_LEFT = 2;
-    Tank.DEF_RIGHT = 3;
-    Tank.DEF_SHOT = 4;
-
     Tank.DEF_TANK_SIZE = 20;
     Tank.DEF_FRONT_SIZE = 5;
-    Tank.DEF_MOVE_MAX_X = 20;
-    Tank.DEF_MOVE_MAX_Y = 20;
 
     var tank = {};
 
@@ -22,7 +9,7 @@ function Tank(id, type, x, y, GameStatus, color){
     tank.myTankX = x; // 탱크 위치
     tank.myTankY = y;
     tank.type = type;
-    tank.myTankIng = Tank.DEF_UP;
+    tank.myTankIng = MOVE.UP;
     tank.myHP = 100;
     tank.shotList = [];
     tank.color = color || 'yellow';
@@ -41,21 +28,21 @@ function Tank(id, type, x, y, GameStatus, color){
      */
     tank.fnDrawTank = function(context){
 
-        var wX = tank.myTankX*Tank.DEF_TANK_SIZE
-            , wY = tank.myTankY*Tank.DEF_TANK_SIZE
+        var wX = tank.myTankX* DEF.CAP_SIZE
+            , wY = tank.myTankY* DEF.CAP_SIZE
             ;
 
         context.fillStyle = tank.color;
         context.fillRect(wX, wY, Tank.DEF_TANK_SIZE, Tank.DEF_TANK_SIZE);
 
         context.fillStyle = 'red';
-        if(tank.myTankIng == Tank.DEF_UP){
+        if(tank.myTankIng == MOVE.UP){
             context.fillRect(wX, wY, Tank.DEF_TANK_SIZE, Tank.DEF_FRONT_SIZE);
-        } else if(tank.myTankIng == Tank.DEF_DOWN){
+        } else if(tank.myTankIng == MOVE.DOWN){
             context.fillRect(wX, wY+Tank.DEF_TANK_SIZE-Tank.DEF_FRONT_SIZE, Tank.DEF_TANK_SIZE, Tank.DEF_FRONT_SIZE);
-        } else if(tank.myTankIng == Tank.DEF_LEFT){
+        } else if(tank.myTankIng == MOVE.LEFT){
             context.fillRect(wX, wY, Tank.DEF_FRONT_SIZE, Tank.DEF_TANK_SIZE);
-        } else if(tank.myTankIng == Tank.DEF_RIGHT){
+        } else if(tank.myTankIng == MOVE.RIGHT){
             context.fillRect(wX+Tank.DEF_TANK_SIZE-Tank.DEF_FRONT_SIZE, wY, Tank.DEF_FRONT_SIZE, Tank.DEF_TANK_SIZE);
         }
 
@@ -71,28 +58,26 @@ function Tank(id, type, x, y, GameStatus, color){
      */
     tank.fnKeyDown = function(keyCode){
 
-        logger.debug(keyCode);
-
         switch(keyCode){
             // 위로
-            case Tank.DEF_UP:
+            case MOVE.UP:
                 tank.myTankIng = keyCode;
                 tank.myTankY = (tank.myTankY <= 0)? 0 :  tank.myTankY-1;
                 break;
             // Down
-            case Tank.DEF_DOWN:
+            case MOVE.DOWN:
                 tank.myTankIng = keyCode;
-                tank.myTankY = (tank.myTankY >= Tank.DEF_MOVE_MAX_Y-1)? Tank.DEF_MOVE_MAX_Y-1 :  tank.myTankY+ 1;
+                tank.myTankY = (tank.myTankY >= DEF.MAX_Y-2)? DEF.MAX_Y-2 :  tank.myTankY+ 1;
                 break;
             // Left
-            case Tank.DEF_LEFT:
+            case MOVE.LEFT:
                 tank.myTankIng = keyCode;
                 tank.myTankX = (tank.myTankX <= 0)? 0 :  tank.myTankX-1;
                 break;
             // Right
-            case Tank.DEF_RIGHT:
+            case MOVE.RIGHT:
                 tank.myTankIng = keyCode;
-                tank.myTankX = (tank.myTankX >= Tank.DEF_MOVE_MAX_X-1)? Tank.DEF_MOVE_MAX_X-1 :  tank.myTankX+1;
+                tank.myTankX = (tank.myTankX >= DEF.MAX_X-2)? DEF.MAX_X-2 :  tank.myTankX+1;
                 break;
             // ESC
             case 27:
@@ -100,9 +85,8 @@ function Tank(id, type, x, y, GameStatus, color){
                 break;
 
             // SPACE
-            case Tank.DEF_SHOT:
+            case MOVE.SHOT:
                 GameStatus.shotList.push(new Shot(tank, tank.myTankX, tank.myTankY, tank.myTankIng, tank.GameStatus));
-                logger.debug(GameStatus.shotList.length);
                 break
             default :
                 return false;
@@ -121,42 +105,42 @@ function Tank(id, type, x, y, GameStatus, color){
         var tPosition = GameStatus.myTank.fnGetPosition();
 
         switch(n){
-            case Tank.DEF_DOWN :
+            case MOVE.DOWN :
                 if(tank.myTankY > tPosition.y) {
-                    tank.fnKeyDown(Tank.DEF_UP);
+                    tank.fnKeyDown(MOVE.UP);
                 }
                 break;
-            case Tank.DEF_UP:
+            case MOVE.UP:
                 if(tank.myTankY < tPosition.y) {
-                    tank.fnKeyDown(Tank.DEF_DOWN);
+                    tank.fnKeyDown(MOVE.DOWN);
                 }
                 break;
-            case Tank.DEF_LEFT :
+            case MOVE.LEFT :
                 if(tank.myTankX < tPosition.x) {
-                    tank.fnKeyDown(Tank.DEF_RIGHT);
+                    tank.fnKeyDown(MOVE.RIGHT);
                 }
                 break;
-            case Tank.DEF_RIGHT :
+            case MOVE.RIGHT :
                 if(tank.myTankX > tPosition.x) {
-                    tank.fnKeyDown(Tank.DEF_LEFT);
+                    tank.fnKeyDown(MOVE.LEFT);
                 }
                 break;
-            case Tank.DEF_SHOT :
+            case MOVE.SHOT :
                 if(tank.myTankX == tPosition.x){
                     if(tank.myTankY > tPosition.y){
-                        tank.myTankIng = Tank.DEF_UP;
+                        tank.myTankIng = MOVE.UP;
                     } else if(tank.myTankY < tPosition.y){
-                        tank.myTankIng = Tank.DEF_DOWN;
+                        tank.myTankIng = MOVE.DOWN;
                     }
-                    tank.fnKeyDown(Tank.DEF_SHOT);
+                    tank.fnKeyDown(MOVE.SHOT);
                 }
                 else if(tank.myTankY == tPosition.y){
                     if(tank.myTankX > tPosition.x){
-                        tank.myTankIng = Tank.DEF_LEFT;
+                        tank.myTankIng = MOVE.LEFT;
                     } else if(tank.myTankX < tPosition.x){
-                        tank.myTankIng = Tank.DEF_RIGHT;
+                        tank.myTankIng = MOVE.RIGHT;
                     }
-                    tank.fnKeyDown(Tank.DEF_SHOT);
+                    tank.fnKeyDown(MOVE.SHOT);
 
                 }
                 break;

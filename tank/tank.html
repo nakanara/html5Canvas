@@ -5,7 +5,7 @@
 </head>
 <body>
 
-    <h1>Tank Game</h1>
+    <h1>Tank Game <span id='timer'></span></h1>
     <canvas id='canvas' height="400" width="400"></canvas>
 
 </body>
@@ -15,29 +15,53 @@
 <script src="js/Tank.js"></script>
 <script src="js/Shot.js"></script>
 <script src="js/stats.js"></script>
+<script src="js/StatusGame.js"></script>
+<script src="js/TankImage.js"></script>
 <script>
+    var DEF = {
+        LINE_SIZE : 0  // 라인크기
+        ,MAX_X : 40 //  x축 최대값
+        ,MAX_Y : 40// Y축 최대값.
+        ,AI_CAP : 20
+        ,CAP_SIZE : 10  // 라인 간의 간격
+    };
+
+    var MOVE = {
+        UP : 0,
+        DOWN : 1,
+        LEFT : 2,
+        RIGHT : 3,
+        SHOT : 4
+    };
+
+    var GAME_STATE = {
+        GAME_INTRO : 0,
+        GAME_ING : 1,
+        GAME_OVER : 2,
+        GAME_WIN : 3
+    };
+
     (function(){
 
         logger.info('Start Game');
-
-        var canvas = $('#canvas')
-                ,context = document.getElementById('canvas').getContext('2d')
-                ,height = 400
-                ,width = 400
-                ,DEF_LINE_SIZE = 1  // 라인크기
-                ,DEF_MAX_X = 20 //  x축 최대값
-                ,DEF_MAX_Y = 20// Y축 최대값.
-                ,DEF_AI_CAP = 20
+        var renderStats = new Stats();
+        var context = document.getElementById('canvas').getContext('2d')
+                , canvas = $('#canvas')
+                , timer = $('#timer')
+                , startTime;
         ;
 
-        var renderStats = new Stats();
         document.body.appendChild(renderStats.domElement);
 
         var GameStatus  = {
             shotList : []
-            ,DEF_CAP_SIZE : 20  // 라인 간의 간격
-            ,myTank : {}
-            ,redTank : []
+            , myTank : {}
+            , redTank : []
+//            , statusGame :
+            , context : context
+            , height : 400
+            , width : 400
+            , state : GAME_STATE.GAME_INTRO
         }
 //        var loop = 0;
         var Game = {
@@ -51,8 +75,8 @@
 
             var loop = 0, skipTicks = 10000/Game.fps,
                     maxFrameSkip = 10,
-                    nextGameTick = (new Date).getTime(),
-                    aiLoop = 0;
+                    nextGameTick = (new Date).getTime()
+                    ;
 
             return function(){
                 loop = 0;
@@ -61,143 +85,90 @@
                     nextGameTick += skipTicks;
                     loop++;
                 }
-                if(aiLoop++ > DEF_AI_CAP) {
-                    aiLoop = 0;
-                    fnTankAI();
-                    fnPlayShot();
-                }
 
+                fnGameRun();
                 renderStats.update();
-                fnDraw();
-                fnDrawShot()
             };
         })();
 
         /**
          * 전체 그리기
          */
-        function fnDraw(){
+        function fnGameRun(){
+            switch (GameStatus.state){
+                case GAME_STATE.GAME_INTRO:
 
-            fnDrawBackGround();
-            GameStatus.myTank.fnDrawTank(context);
-            $.each(GameStatus.redTank, function(idx, val){
-                val.fnDrawTank(context);
-            });
-        }
+                    context.fillStyle = 'black';
+                    context.fillRect(0, 0, GameStatus.height, GameStatus.width);
 
-        /**
-         * 배경 그리기
-         *
-         */
-        function fnDrawBackGround(){
-            var i, j;
+                    context.fillStyle = 'white';
+                    context.fillText('Tank Game', 20, 50);
+                    context.fillText('Space ...', 100, 80);
 
-            context.fillStyle = 'black';
-            context.fillRect(0, 0, height, width);
+                    fnDrawImage(context, fnGetImgMap('tank'));
 
-            context.lineWidth = 1;
-            context.strokeStyle = 'pink';
+                    break;
 
-            // X
-            for(i=0; i < DEF_MAX_X; i+=1){
-                j = i*GameStatus.DEF_CAP_SIZE;
+                case GAME_STATE.GAME_ING:
+                    timer.html( ((new Date).getTime() - startTime) /1000);
 
-                context.beginPath();
-                context.moveTo(0, j);
-                context.lineTo(width, j);
-                context.stroke();
+                    GameStatus.statusGame.run();
+                    break;
+
+                case GAME_STATE.GAME_OVER:
+                    context.fillStyle = 'black';
+                    context.fillRect(0, 0, GameStatus.height, GameStatus.width);
+
+                    context.fillStyle = 'white';
+                    context.fillText('Game Over', 20, 50);
+                    context.fillText('Space ...', 100, 80);
+                    break;
+
+                case GAME_STATE.GAME_WIN:
+                    context.fillStyle = 'black';
+                    context.fillRect(0, 0, GameStatus.height, GameStatus.width);
+
+                    context.fillStyle = 'white';
+                    context.fillText('Game WIN', 20, 50);
+                    context.fillText('Space ...', 100, 80);
+                    break;
             }
 
-            // Y
-            for(i=0; i < DEF_MAX_Y; i+=1){
-                j = i*GameStatus.DEF_CAP_SIZE;
-
-                context.beginPath();
-                context.moveTo(j, 0);
-                context.lineTo(j, height);
-                context.stroke();
-            }
         }
 
-        /**
-         * Key Down.
-         * @param event
-         * @returns {boolean}
-         */
         function fnKeyDown(event){
-
-            var keyCode = Tank.DEF_UP;
-
-            switch(event.keyCode){
-                // 위로
-                case 87:
-                case 38:
-                    keyCode = Tank.DEF_UP;
-                    break;
-                // Down
-                case 40:
-                    keyCode = Tank.DEF_DOWN;
-                    break;
-                // Left
-                case 37:
-                    keyCode = Tank.DEF_LEFT;
-                    break;
-                // Right
-                case 39:
-                    keyCode = Tank.DEF_RIGHT;
-                    break;
-                // ESC
-                case 27:
-                    logger.debug('ESC');
-                    keyCode = keyCode;
+            switch (GameStatus.state){
+                case GAME_STATE.GAME_INTRO:
+                        if(event.keyCode == 32) {
+                            fnGameInit();
+                            GameStatus.state = GAME_STATE.GAME_ING;
+                        }
                     break;
 
-                // SPACE
-                case 32:
-                    logger.debug('SPACE');
-                    keyCode = Tank.DEF_SHOT;
+                case GAME_STATE.GAME_ING:
+                    GameStatus.statusGame.fnKeyDown(event);
                     break;
-                default :
-                    return false;
+
+                case GAME_STATE.GAME_OVER:
+                    if(event.keyCode == 32) {
+                        GameStatus.state = GAME_STATE.GAME_INTRO;
+                    }
+                    break;
+
+                case GAME_STATE.GAME_WIN:
+                    if(event.keyCode == 32) {
+                        GameStatus.state = GAME_STATE.GAME_INTRO;
+                    }
+                    break;
             }
-
-            GameStatus.myTank.fnKeyDown(keyCode);
-            logger.debug('>>' + GameStatus.shotList.length);
-
-            return false;
-        }
-
-        function fnTankAI(){
-            $.each(GameStatus.redTank, function(idx, val){
-               val.fnTankAI();
-            });
-        }
-
-        function fnPlayShot(){
-            var copyArray = [];
-            $.each(GameStatus.shotList, function(idx, val){
-                if(val.fnPlayShot()){
-                   copyArray.push(val);
-                } else {
-                    val = null;
-                }
-            });
-            GameStatus.shotList = copyArray;
-        }
-
-        function fnDrawShot(){
-            //logger.debug(shotList.length);
-            $.each(GameStatus.shotList, function(idx, val){
-               val.fnDrawShot(context);
-            });
         }
 
         /**
          * 초기화.
          */
         function fnInit(){
-            canvas.height(height)
-                    .width(width)
+            canvas.height(GameStatus.height)
+                    .width(GameStatus.width)
       //            http://stackoverflow.com/questions/1829586/how-do-i-give-an-html-canvas-the-keyboard-focus-using-jquery
                     .attr("contentEditable", "true")    // 이부분 필요함. 이벤트 안들어옴.
                     .attr('tabindex', 0)
@@ -205,10 +176,22 @@
                     .keydown(fnKeyDown)
             ;
 
-            GameStatus.myTank = new Tank('my', 'self', 1, 1, GameStatus, 'pink');
-            GameStatus.redTank.push(new Tank('red1', 'auto', 5, 5, GameStatus));
-
+            GameStatus.statusGame = new StatusGame(GameStatus);
             Game.interval = setInterval(Game.run, 0);
+        }
+
+        function fnGameInit(){
+
+            GameStatus.myTank = null;
+            GameStatus.redTank = [];
+            GameStatus.shotList = [];
+            timer.html('0');
+            startTime = (new Date).getTime();
+
+            GameStatus.myTank = new Tank('my', 'self', 1, 1, GameStatus, 'pink');
+            GameStatus.redTank.push(new Tank('red1', 'auto', 5, 30, GameStatus, 'red'));
+            GameStatus.redTank.push(new Tank('red1', 'auto', 20, 30, GameStatus, 'blue'));
+
         }
 
 
