@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>MapEdit</title>
+    <style>
+        .item {
+            with : 20px;
+            height: 20px;
+        }
+        .selItem {
+            background-color: yellow;
+        }
+    </style>
+</head>
+<body>
+
+    <div><canvas id='canvas' height="400" width="400"></canvas></div>
+    <div id='mapItem' style="float: left;"></div>
+    <div><textarea id='mapValues'></textarea></div>
+    <div><button id='btnMapSave'>맵저장</button></div>
+
+
+</body>
+<script src="http://code.jquery.com/jquery-1.10.2.min.js"></script>
+<script src="js/TankImage.js"></script>
+<script src="js/logger.js"></script>
+<script src="js/stats.js"></script>
+<script>
+    var DEF = {
+        LINE_SIZE : 0  // 라인크기
+        ,MAX_X : 40 //  x축 최대값
+        ,MAX_Y : 40// Y축 최대값.
+        ,AI_CAP : 20
+        ,CAP_SIZE : 10  // 라인 간의 간격
+    };
+
+    (function(){
+
+        var context = document.getElementById('canvas').getContext('2d')
+                , canvas = $('#canvas')
+                , timer = $('#timer')
+                , run
+                , interval
+                , selVal
+                , mapArray = {}
+        ;
+
+        var renderStats = new Stats();
+        document.body.appendChild(renderStats.domElement);
+
+
+        var GameStatus  = {
+            context : context
+            , height : 400
+            , width : 400
+        }
+
+        var Game = {
+            fps : 100
+        };
+
+        /**
+         * 게임 타이머.
+         */
+        run = (function(){
+
+            var loop = 0, skipTicks = 10000/Game.fps,
+                    maxFrameSkip = 10,
+                    nextGameTick = (new Date).getTime()
+                    ;
+
+            return function(){
+                loop = 0;
+
+                while((new Date).getTime() > nextGameTick && loop < maxFrameSkip){
+                    nextGameTick += skipTicks;
+                    loop++;
+                }
+
+                fnGameRun();
+                renderStats.update();
+            };
+        })();
+
+        /**
+         * 전체 그리기
+         */
+        function fnGameRun(){
+
+            context.fillStyle = 'black';
+            context.fillRect(0, 0, GameStatus.height, GameStatus.width);
+
+//            fnMapLoad(context);
+
+            $.each(mapArray, function(idx, val){
+                fnDrawImage(context, val[0], val[1], val[2]);
+            })
+
+
+        }
+
+        function fnMouseDown(e){
+
+            if(!selVal){
+                alert('Item을 선택하세요.');
+                return;
+
+            }
+
+            var x = parseInt((e.clientX / 10)-1),
+                    y = parseInt((e.clientY / 10)-1)
+                   ;
+
+            mapArray[x+':' + y] = [x, y, selVal];
+        }
+
+        function fnMapDataSave(){
+            var t = '';
+
+            t += 'var map= [';
+            $.each(mapArray, function(idx, val){
+                t += '[' + val[0] + ',' +  val[1] + ',' + val[2] + ']';
+            });
+            t += ']';
+
+            $('#mapValues').text(t);
+        }
+
+
+        function fnInit(){
+            canvas.height(400)
+                    .width(400)
+                    .attr("contentEditable", "true")    // 이부분 필요함. 이벤트 안들어옴.
+                    .attr('tabindex', 0)
+                    .mousedown(fnMouseDown)
+                    //.keydown(fnKeyDown)
+            ;
+
+            interval = setInterval(run, 0);
+
+            $('#btnMapSave').on('click', function(){
+               fnMapDataSave();
+            });
+        }
+
+        function fnMapInit(){
+
+            var item = ['water', 'brick', 'clear'];
+            var mapItem = $('#mapItem');
+            var tmp= '';
+
+            $.each(item, function(idx, val){
+                tmp += "<div class='item " + val +"' val='"+val+"'>"+ val + "</div>";
+            });
+
+            mapItem.html(tmp);
+
+            $('.item').on('click', function(e){
+                $('.selItem').removeClass('selItem');
+                $(e.target).addClass('selItem');
+                selVal = $(e.target).attr('val');
+
+            });
+
+        }
+
+        fnInit();
+        fnMapInit();
+
+    })()
+</script>
+</html>

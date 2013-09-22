@@ -26,6 +26,7 @@ function StatusGame(GameStatus){
     function fnDraw(){
 
         fnDrawBackGround();
+        fnMapLoad(context);
         GameStatus.myTank.fnDrawTank(context);
         $.each(GameStatus.redTank, function(idx, val){
             val.fnDrawTank(context);

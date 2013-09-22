@@ -1,12 +1,20 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="UTF-8">
     <title>Tank Game</title>
 </head>
 <body>
 
     <h1>Tank Game <span id='timer'></span></h1>
     <canvas id='canvas' height="400" width="400"></canvas>
+
+<div>
+    <ul>
+        <li>맵편집</li>
+        <li>적 탱크</li>
+    </ul>
+</div>
 
 </body>
 <!--<script src="http://code.jquery.com/jquery-2.0.3.min.js"></script>-->
@@ -104,8 +112,7 @@
                     context.fillStyle = 'white';
                     context.fillText('Tank Game', 20, 50);
                     context.fillText('Space ...', 100, 80);
-
-                    fnDrawImage(context, fnGetImgMap('tank'));
+                    fnMapLoad(context);
 
                     break;
 

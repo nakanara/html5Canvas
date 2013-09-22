@@ -62,10 +62,12 @@ function Shot(tank, x, y, shoting, GameStatus){
 
         // 벽 나감 체크.
         if(shot.shotX < 0 || shot.shotX > DEF.MAX_X) {
+            tank.shutflag=false;
             return false;
         }
 
         if(shot.shotY < 0 || shot.shotY > DEF.MAX_Y){
+            tank.shutflag=false;
             return false;
         }
 
@@ -81,6 +83,7 @@ function Shot(tank, x, y, shoting, GameStatus){
                     && shot.shotY <= (position.y )) {
 
                     GameStatus.state = GAME_STATE.GAME_WIN;
+                    tank.shutflag=false;
                     return false;
                 }
 
@@ -97,17 +100,12 @@ function Shot(tank, x, y, shoting, GameStatus){
                 && shot.shotY <= (position.y )) {
 
                 GameStatus.state = GAME_STATE.GAME_OVER;
+                tank.shutflag=false;
                 return false;
             }
 
         }
-
-
         return true;
-
-
-
-
     }
 
     shot.fnPlayShot();

@@ -13,6 +13,7 @@ function Tank(id, type, x, y, GameStatus, color){
     tank.myHP = 100;
     tank.shotList = [];
     tank.color = color || 'yellow';
+    tank.shutflag = false;
 
     /**
      * 탱크 HP
@@ -86,7 +87,10 @@ function Tank(id, type, x, y, GameStatus, color){
 
             // SPACE
             case MOVE.SHOT:
-                GameStatus.shotList.push(new Shot(tank, tank.myTankX, tank.myTankY, tank.myTankIng, tank.GameStatus));
+                if(!tank.shutflag) {
+                    GameStatus.shotList.push(new Shot(tank, tank.myTankX, tank.myTankY, tank.myTankIng, tank.GameStatus));
+                    tank.shutflag=true;
+                }
                 break
             default :
                 return false;
