@@ -112,15 +112,27 @@
                     y = parseInt((e.clientY / 10)-1)
                    ;
 
-            mapArray[x+':' + y] = [x, y, selVal];
+            if(selVal == 'clear'){
+                delete mapArray[x+':' + y]; // 맵 삭제.
+            } else {
+                mapArray[x+':' + y] = [x, y, selVal];
+            }
+
         }
 
         function fnMapDataSave(){
-            var t = '';
+            var t = '',
+                    isFirst = false;
 
             t += 'var map= [';
             $.each(mapArray, function(idx, val){
-                t += '[' + val[0] + ',' +  val[1] + ',' + val[2] + ']';
+
+                if(isFirst) {
+                    t += ',';
+                } else {
+                    isFirst = true;
+                }
+                t += '[' + val[0] + ',' +  val[1] + ',\'' + val[2] + '\']';
             });
             t += ']';
 
